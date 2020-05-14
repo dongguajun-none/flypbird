@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style type="text/css">
+			*{margin: 0;padding: 0;}
+			html,body{background: gainsboro;}
+			#box{
+				position: relative;
+				margin: 50px auto;
+				width: 800px;
+				height: 400px;
+			}
+			#canvas{
+				background: gray;
+			}
+			#res{
+				height: 120px;width: 120px;
+				background-color: ragb(194,194,194,0.3);
+				border-radius: 50%;
+				position: absolute;
+				top: 140px;left: 340px;
+				display: none;
+				text-align: center;
+			}
+			#res p{
+				line-height: 120px;
+			}
+			#res img{
+				width: 50px;
+				height: 50px;
+				display: block;
+				margin: 0 auto;
+				border-radius: 50%;
+			}
+			#beizhu{
+				height: 100;width: 50px;
+				position: absolute;
+				top: 0;left: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box">
+			<canvas id="canvas" width="800px" height="400px"></canvas>
+			<div id="mark">
+				
+			</div>
+			<div id="res">
+				<h2>得分:100</h2>
+				<img src="#" >
+			</div>
+		</div>
+		<div id="beizhu">
+			<p>点击屏幕向上蹦跶</p><br>
+			<p>因为没切图的原因，小鸟要比看起来要大，<b>当心!</b></p>
+		</div>
+	</body>
+	<script type="text/javascript">
+		//创建画布
+		var canvas = document.getElementById("canvas");
+		var context = canvas.getContext("2d");
+		//创建图片
+		var bird = new Image();
+		bird.src = "./img/上.jpg";
+		//鸟的位置
+		var birdX = 200;
+		var birdY = 100;
+		var birdTime = null;
+		//图片是异步加载，所以要在图片加载完后在放入画布
+		bird.onload = function(){//判断定时器是否只启动一次
+			if(birdTime == null){
+				//让小鸟动起来
+				birdTime = setInterval(function(){
+					if(birdY <= 367){
+						birdY++;
+					}
+					context.clearRect(0,0,800,400);//先清空画布，三个参数（起始位置，宽，高）
+					context.clearRect(-100,0,66,250);
+					drawPillar();
+					context.drawImage(bird,birdX,birdY);
+				},10)	
+			}			
+		}
+		//点击屏幕小鸟上升
+		document.onmousedown = function(){
+			bird.src = "./img/下.jpg";
+			birdY = birdY - 30;
+		}
+		document.onmouseup = function(){
+			bird.src = "./img/上.jpg";
+		}
+		
+		
+		//柱子
+		
+		
+		//创建柱子
+		var pillarTime = null;
+		var pillarArr = [];
+		function creatPillar(){
+			pillarTime = setInterval(function(){
+				var pillar = {};//柱子容器
+				pillar.positionX = 800;
+				pillar.positionY = -Math.round(Math.random()*100+100);
+				pillar.imgA = new Image();
+				pillar.imgB= new Image();
+				pillar.imgA.src = "./img/上管子.jpg";
+				pillar.imgB.src = "./img/下管子.jpg";
+				pillar.id = new Date().getTime();
+				pillarArr.push(pillar);
+				// console.log(pillarArr);
+			},1700)
+		}
+		
+		creatPillar();
+		var same = null;
+		var mark = 0;
+		function drawPillar(){
+			for(var i = 0;i < pillarArr.length;i++){
+				pillarArr[i].positionX--;
+				
+				if(pillarArr[i].positionX <= -66){
+					pillarArr.splice(i,1);
+				}
+				
+				context.drawImage(pillarArr[i].imgA,pillarArr[i].positionX,pillarArr[i].positionY);
+				context.drawImage(pillarArr[i].imgB,pillarArr[i].positionX,pillarArr[i].positionY+370);
+				
+				if(birdX + 66 >= pillarArr[i].positionX && birdX - 44 <= pillarArr[i].positionX ){
+					//加分
+					// console.log("jingguoyige1");
+					if(pillarArr[i].id != same){
+						mark++;
+						same = pillarArr[i].id;
+						
+						document.getElementById("mark").innerHTML = "得分是" + mark;
+						
+					}
+					//判定碰撞
+					if(birdY < pillarArr[i].positionY + 250 || birdY + 33 >= pillarArr[i].positionY+370){
+						// console.log("shangbian");
+						clearInterval(birdTime);
+						clearInterval(pillarTime);
+						
+						var res = document.getElementById("res");
+						res.style.display = "block";
+						if(mark >= 1 && mark <= 10){
+							res.children[1].src = "./img/铜牌.jpg"
+						}
+						if(mark > 10 && mark <= 50){
+							res.children[1].src = "./img/银牌.jpg"
+						}
+						if(mark > 50){
+							res.children[1].src = "./img/金牌.jpg"
+						}
+						res.children[0].innerHTML = "得分为:" + mark;
+						setTimeout(function(){
+							res.innerHTML = "<p>重新开始游戏</p>";
+							setTimeout(function(){
+								location.reload();
+							},2000)
+						},3000)
+					}
+				}
+				
+			}
+			
+			
+		}
+	</script>
+</html>
